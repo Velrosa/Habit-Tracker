@@ -22,5 +22,20 @@ namespace Habit_Tracker
             }
 
         }
+        public void OpenConnection()
+        {
+            if (myConnection.State != System.Data.ConnectionState.Open)
+            {
+                myConnection.Open();
+            }
+        }
+
+        public void CloseConnection()
+        {
+            if (myConnection.State != System.Data.ConnectionState.Closed)
+            {
+                myConnection.Close();
+            }
+        }
     }
 }
