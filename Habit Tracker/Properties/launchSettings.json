@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Habit Tracker": {
+      "commandName": "Project",
+      "workingDirectory": "D:\\Users\\steez\\source\\repos\\Habit Tracker\\Habit Tracker\\"
+    }
+  }
+}
