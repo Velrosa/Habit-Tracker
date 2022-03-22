@@ -18,7 +18,6 @@ namespace Habit_Tracker
             if (!File.Exists("database.sqlite3"))
             {
                 SQLiteConnection.CreateFile("database.sqlite3");
-                //System.Console.WriteLine("Database file created");
             }
 
         }
