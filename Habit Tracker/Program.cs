@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Data.SQLite;
+using System.Linq;
 
 namespace Habit_Tracker
 {
@@ -30,7 +31,7 @@ namespace Habit_Tracker
                 "Type 3 to Delete Record.\n" +
                 "Type 4 to Update Record.\n");
             
-            string selector = Convert.ToString(Console.ReadLine());
+            string selector = Convert.ToString(Console.ReadKey(true).KeyChar);
 
             switch (selector)
             {
@@ -54,7 +55,7 @@ namespace Habit_Tracker
                     UpdateRecord(databaseObject, selector);
                     break;
                 default:
-                    Console.WriteLine("Invalid Entry. press key to return... ");
+                    Console.Write("Invalid Entry. press key to return... ");
                     Console.ReadKey();
                     break;
 
@@ -91,14 +92,22 @@ namespace Habit_Tracker
                 while (true)
                 {
                     int[] dates = Array.ConvertAll(entry.Split('/'), int.Parse);
-                    //string[] dates = entry.Split('/');
 
                     if (dates[0] > 31 || dates[1] > 12 || dates[2] < 20)
                     {
                         Console.WriteLine("Invalid date, enter again... ");
                         entry = Console.ReadLine();
                     }
-                    else break;
+                    else if (entry.Count(c => c == '/') != 2)
+                    {
+                        Console.WriteLine("Invalid date, enter again... ");
+                        entry = Console.ReadLine();
+                    }
+                    else if (entry.Length != 8)
+                    {
+                        Console.WriteLine("Invalid date, enter again... ");
+                        entry = Console.ReadLine();
+                    }else break;
 
                 }
             }
@@ -109,9 +118,9 @@ namespace Habit_Tracker
         public static void InsertRecord(Database database)
         {
 
-            Console.WriteLine("Inserting a Habit Record...\nPlease Enter the quantity: ");
+            Console.Write("Inserting a Habit Record...\nPlease Enter the quantity: ");
             string quantity_value = Validate(Console.ReadLine(), "number");
-            Console.WriteLine("Please Enter the Date: ");
+            Console.Write("Please Enter the Date (DD/MM/YY): ");
             string date_value = Validate(Console.ReadLine(), "date");
                 
             string query = "INSERT INTO habit (quantity, date) VALUES (@quantity, @date)";
@@ -149,7 +158,7 @@ namespace Habit_Tracker
             
             if (selector == "1")
             {
-                Console.WriteLine("\nPress any key to continue... ");
+                Console.Write("\nPress any key to return to menu... ");
                 Console.ReadKey();
             }
              
@@ -159,7 +168,7 @@ namespace Habit_Tracker
         {
             ViewRecords(database, selector);
             
-            Console.WriteLine("\nDeleting a Record...\nEnter ID for entry to delete: ");
+            Console.Write("\nDeleting a Record...\nEnter ID for entry to delete: ");
             string delete_index = Validate(Console.ReadLine(), "id");
 
             string query = "DELETE FROM habit WHERE id=(@Id)";
@@ -177,11 +186,11 @@ namespace Habit_Tracker
             ViewRecords(database, selector);
             
             Console.WriteLine("\nUpdating a Record... ");
-            Console.WriteLine("Please Enter the ID of the log to change.");
+            Console.Write("Please Enter the ID of the log to change.");
             string entry_id = Console.ReadLine();
-            Console.WriteLine("Please Enter a new quantity: ");
+            Console.Write("Please Enter a new quantity: ");
             string entry_quantity = Validate(Console.ReadLine(), "number");
-            Console.WriteLine("Please Enter a new date: ");
+            Console.Write("Please Enter a new date (DD/MM/YY): ");
             string entry_date = Validate(Console.ReadLine(), "date");
             
             
