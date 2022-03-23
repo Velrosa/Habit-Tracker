@@ -54,7 +54,7 @@ namespace Habit_Tracker
                     UpdateRecord(databaseObject, selector);
                     break;
                 default:
-                    Console.WriteLine("Invalid Entry.");
+                    Console.WriteLine("Invalid Entry. press key to return... ");
                     Console.ReadKey();
                     break;
 
@@ -62,14 +62,58 @@ namespace Habit_Tracker
 
         }
 
+        public static string Validate(string entry, string type)
+        {
+            int valid_num = 0;
+            
+            if (type == "number" || type == "date" || type == "id") 
+            {
+                while (entry == "")
+                {
+                    Console.WriteLine("Please enter a value! ");
+                    entry = Console.ReadLine();
+                }
+            }
+
+            if (type == "number" || type == "id")
+            {
+                bool isNumber = int.TryParse(entry, out valid_num);
+                while (!isNumber)
+                {
+                    Console.WriteLine("Please enter a number! ");
+                    entry = Console.ReadLine();
+                    isNumber = int.TryParse(entry, out valid_num);
+                }
+            }
+            
+            if (type == "date")
+            {
+                while (true)
+                {
+                    int[] dates = Array.ConvertAll(entry.Split('/'), int.Parse);
+                    //string[] dates = entry.Split('/');
+
+                    if (dates[0] > 31 || dates[1] > 12 || dates[2] < 20)
+                    {
+                        Console.WriteLine("Invalid date, enter again... ");
+                        entry = Console.ReadLine();
+                    }
+                    else break;
+
+                }
+            }
+            return entry;
+
+        }
+        
         public static void InsertRecord(Database database)
         {
+
             Console.WriteLine("Inserting a Habit Record...\nPlease Enter the quantity: ");
-            string quantity_value = Console.ReadLine();
+            string quantity_value = Validate(Console.ReadLine(), "number");
             Console.WriteLine("Please Enter the Date: ");
-            string date_value = Console.ReadLine();
-
-
+            string date_value = Validate(Console.ReadLine(), "date");
+                
             string query = "INSERT INTO habit (quantity, date) VALUES (@quantity, @date)";
             SQLiteCommand myCommand = new SQLiteCommand(query, database.myConnection);
             database.OpenConnection();
@@ -93,11 +137,11 @@ namespace Habit_Tracker
             
             if (result.HasRows)
             {
-                Console.WriteLine("ID | Quantity | Date");
-                Console.WriteLine("--------------------");
+                Console.WriteLine("  ID  | Quantity | Date");
+                Console.WriteLine("-----------------------------");
                 while (result.Read())
                 {
-                    Console.WriteLine("{0}  | {1}        | {2}", result["id"], result["quantity"], result["date"]);
+                    Console.WriteLine("{0,5} | {1,8} | {2}", result["id"], result["quantity"], result["date"]);
                 }
             }
 
@@ -116,7 +160,7 @@ namespace Habit_Tracker
             ViewRecords(database, selector);
             
             Console.WriteLine("\nDeleting a Record...\nEnter ID for entry to delete: ");
-            string delete_index = Console.ReadLine();
+            string delete_index = Validate(Console.ReadLine(), "id");
 
             string query = "DELETE FROM habit WHERE id=(@Id)";
             SQLiteCommand myCommand = new SQLiteCommand(query, database.myConnection);
@@ -136,16 +180,16 @@ namespace Habit_Tracker
             Console.WriteLine("Please Enter the ID of the log to change.");
             string entry_id = Console.ReadLine();
             Console.WriteLine("Please Enter a new quantity: ");
-            string entry_edit = Console.ReadLine();
+            string entry_quantity = Validate(Console.ReadLine(), "number");
             Console.WriteLine("Please Enter a new date: ");
-            string entry_date = Console.ReadLine();
+            string entry_date = Validate(Console.ReadLine(), "date");
             
             
             string query = "UPDATE habit SET quantity=(@quantity), date=(@date) WHERE id=(@id) ";
             SQLiteCommand myCommand = new SQLiteCommand(query, database.myConnection);
 
             database.OpenConnection();
-            myCommand.Parameters.AddWithValue("@quantity", entry_edit);
+            myCommand.Parameters.AddWithValue("@quantity", entry_quantity);
             myCommand.Parameters.AddWithValue("@date", entry_date);
             myCommand.Parameters.AddWithValue("@id", entry_id);
 
