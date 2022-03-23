@@ -8,7 +8,6 @@ namespace Habit_Tracker
     {
         static void Main(string[] args)
         {
-            //CreateTable();
 
             while (true)
             {
@@ -16,29 +15,12 @@ namespace Habit_Tracker
             }
 
         }
-        public static void CreateTable(Database database)
-        {
-            string query = "SELECT name FROM sqlite_master WHERE type='table' AND name='habit'";
-
-            database.OpenConnection();
-            
-            SQLiteCommand myCommand = new SQLiteCommand(query, database.myConnection);
-            SQLiteDataReader reader = myCommand.ExecuteReader();
-            if (!reader.HasRows)
-            {
-                string table = "CREATE TABLE habit (id INTEGER PRIMARY KEY AUTOINCREMENT, quantity TEXT, date TEXT);";
-                SQLiteCommand command = new SQLiteCommand(table, database.myConnection);
-                command.ExecuteNonQuery();
-
-                Console.WriteLine("Created Table \'habit\'");
-            }
-
-            database.CloseConnection();
-        }   
 
         public static void MainMenu()
         {
             Database databaseObject = new Database();
+
+            Console.Clear();
             
             Console.WriteLine("\nMAIN MENU\n\n" +
                 "What would you like to do?\n\n" +
@@ -56,19 +38,24 @@ namespace Habit_Tracker
                     Environment.Exit(0);
                     break;
                 case "1":
-                    ViewRecords(databaseObject);
+                    Console.Clear();
+                    ViewRecords(databaseObject, selector);
                     break;
                 case "2":
+                    Console.Clear();
                     InsertRecord(databaseObject);
                     break;
                 case "3":
-                    DeleteRecord(databaseObject);
+                    Console.Clear();
+                    DeleteRecord(databaseObject, selector);
                     break;
                 case "4":
-                    UpdateRecord(databaseObject);
+                    Console.Clear();
+                    UpdateRecord(databaseObject, selector);
                     break;
                 default:
                     Console.WriteLine("Invalid Entry.");
+                    Console.ReadKey();
                     break;
 
             }
@@ -94,9 +81,9 @@ namespace Habit_Tracker
             //Console.WriteLine("New Record Added : {0}", result);
         }
 
-        public static void ViewRecords(Database database)
+        public static void ViewRecords(Database database, string selector)
         {
-            Console.WriteLine("\nDisplaying all records: ");
+            Console.WriteLine("\nDisplaying all habit records:\n");
 
             string query = "SELECT rowid, * FROM habit";
 
@@ -106,18 +93,28 @@ namespace Habit_Tracker
             
             if (result.HasRows)
             {
-                Console.WriteLine("Your Habit Count Logged... ");
+                Console.WriteLine("ID | Quantity | Date");
+                Console.WriteLine("--------------------");
                 while (result.Read())
                 {
-                    Console.WriteLine("Id: {0} | Quantity: {1} | Date: {2}", result["id"], result["quantity"], result["date"]);
+                    Console.WriteLine("{0}  | {1}        | {2}", result["id"], result["quantity"], result["date"]);
                 }
             }
 
             database.CloseConnection();
+            
+            if (selector == "1")
+            {
+                Console.WriteLine("\nPress any key to continue... ");
+                Console.ReadKey();
+            }
+             
         }
 
-        public static void DeleteRecord(Database database)
+        public static void DeleteRecord(Database database, string selector)
         {
+            ViewRecords(database, selector);
+            
             Console.WriteLine("\nDeleting a Record...\nEnter ID for entry to delete: ");
             string delete_index = Console.ReadLine();
 
@@ -131,21 +128,27 @@ namespace Habit_Tracker
 
         }
 
-        public static void UpdateRecord(Database database)
+        public static void UpdateRecord(Database database, string selector)
         {
+            ViewRecords(database, selector);
+            
             Console.WriteLine("\nUpdating a Record... ");
-            Console.WriteLine("Please Enter the ID of the value to change.");
+            Console.WriteLine("Please Enter the ID of the log to change.");
             string entry_id = Console.ReadLine();
-            Console.WriteLine("Please Enter a new value: ");
+            Console.WriteLine("Please Enter a new quantity: ");
             string entry_edit = Console.ReadLine();
+            Console.WriteLine("Please Enter a new date: ");
+            string entry_date = Console.ReadLine();
             
             
-            string query = "UPDATE habit SET quantity=(@quantity) WHERE id=(@id) ";
+            string query = "UPDATE habit SET quantity=(@quantity), date=(@date) WHERE id=(@id) ";
             SQLiteCommand myCommand = new SQLiteCommand(query, database.myConnection);
 
             database.OpenConnection();
             myCommand.Parameters.AddWithValue("@quantity", entry_edit);
+            myCommand.Parameters.AddWithValue("@date", entry_date);
             myCommand.Parameters.AddWithValue("@id", entry_id);
+
             myCommand.ExecuteNonQuery();
             database.CloseConnection();
         }
