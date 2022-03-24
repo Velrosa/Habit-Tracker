@@ -12,7 +12,7 @@ namespace Habit_Tracker
 
         static void Main(string[] args)
         {
-
+            
             while (true)
             {
                 MainMenu();
@@ -52,12 +52,12 @@ namespace Habit_Tracker
                 case "3":
                     Console.Clear();
                     ViewRecords(selector);
-                    DeleteRecord(selector);
+                    DeleteRecord();
                     break;
                 case "4":
                     Console.Clear();
                     ViewRecords(selector);
-                    UpdateRecord(selector);
+                    UpdateRecord();
                     break;
                 default:
                     Console.Write("Invalid Entry. press key to return... ");
@@ -166,7 +166,7 @@ namespace Habit_Tracker
              
         }
 
-        public static void DeleteRecord(string selector)
+        public static void DeleteRecord()
         {
             Console.Write("\nDeleting a Record...  Type MENU to return.\nEnter ID for entry to delete: ");
             string delete_index = Validate(Console.ReadLine(), "id");
@@ -184,12 +184,12 @@ namespace Habit_Tracker
             }
         }
 
-        public static void UpdateRecord(string selector)
+        public static void UpdateRecord()
         {            
             Console.WriteLine("\nUpdating a Record...  Type MENU to return.");
             
             Console.Write("Please Enter the ID of the log to change: ");
-            string entry_id = Console.ReadLine();
+            string entry_id = Validate(Console.ReadLine(), "id");
             if (entry_id == "MENU") { return; }
             
             Console.Write("Please Enter a new quantity: ");
