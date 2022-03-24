@@ -2,6 +2,7 @@
 using System.IO;
 using System.Data.SQLite;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Habit_Tracker
 {
@@ -67,23 +68,15 @@ namespace Habit_Tracker
         {
             int valid_num = 0;
             
-            if (type == "number" || type == "date" || type == "id") 
-            {
-                while (entry == "")
-                {
-                    Console.WriteLine("Please enter a value! ");
-                    entry = Console.ReadLine();
-                }
-            }
-
             if (type == "number" || type == "id")
             {
                 bool isNumber = int.TryParse(entry, out valid_num);
                 while (!isNumber)
                 {
-                    Console.WriteLine("Please enter a number! ");
+                    Console.Write("Invalid entry, Please enter a number: ");
                     entry = Console.ReadLine();
                     isNumber = int.TryParse(entry, out valid_num);
+
                 }
             }
             
@@ -91,24 +84,13 @@ namespace Habit_Tracker
             {
                 while (true)
                 {
-                    int[] dates = Array.ConvertAll(entry.Split('/'), int.Parse);
-
-                    if (dates[0] > 31 || dates[1] > 12 || dates[2] < 20)
+                    if (!Regex.IsMatch(entry, @"^\d{1,2}/\d{1,2}/\d{2,4}$"))
                     {
-                        Console.WriteLine("Invalid date, enter again... ");
+                        Console.Write("Invalid date, Please enter again (DD/MM/YY): ");
                         entry = Console.ReadLine();
                     }
-                    else if (entry.Count(c => c == '/') != 2)
-                    {
-                        Console.WriteLine("Invalid date, enter again... ");
-                        entry = Console.ReadLine();
-                    }
-                    else if (entry.Length != 8)
-                    {
-                        Console.WriteLine("Invalid date, enter again... ");
-                        entry = Console.ReadLine();
-                    }else break;
-
+                    else break;
+                    
                 }
             }
             return entry;
