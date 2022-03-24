@@ -8,6 +8,8 @@ namespace Habit_Tracker
 {
     internal class Program
     {
+        public static string dbString = "Data Source=database.sqlite3";
+
         static void Main(string[] args)
         {
 
@@ -41,19 +43,21 @@ namespace Habit_Tracker
                     break;
                 case "1":
                     Console.Clear();
-                    ViewRecords(databaseObject, selector);
+                    ViewRecords(selector);
                     break;
                 case "2":
                     Console.Clear();
-                    InsertRecord(databaseObject);
+                    InsertRecord();
                     break;
                 case "3":
                     Console.Clear();
-                    DeleteRecord(databaseObject, selector);
+                    ViewRecords(selector);
+                    DeleteRecord(selector);
                     break;
                 case "4":
                     Console.Clear();
-                    UpdateRecord(databaseObject, selector);
+                    ViewRecords(selector);
+                    UpdateRecord(selector);
                     break;
                 default:
                     Console.Write("Invalid Entry. press key to return... ");
@@ -67,16 +71,20 @@ namespace Habit_Tracker
         public static string Validate(string entry, string type)
         {
             int valid_num = 0;
+
             
             if (type == "number" || type == "id")
             {
                 bool isNumber = int.TryParse(entry, out valid_num);
-                while (!isNumber)
+                while (!isNumber || valid_num < 0)
                 {
+                    if (entry == "MENU")
+                    {
+                        return entry;
+                    }
                     Console.Write("Invalid entry, Please enter a number: ");
                     entry = Console.ReadLine();
                     isNumber = int.TryParse(entry, out valid_num);
-
                 }
             }
             
@@ -84,7 +92,11 @@ namespace Habit_Tracker
             {
                 while (true)
                 {
-                    if (!Regex.IsMatch(entry, @"^\d{1,2}/\d{1,2}/\d{2,4}$"))
+                    if (entry == "MENU")
+                    {
+                        return entry;
+                    }
+                    else if (!Regex.IsMatch(entry, @"^\d{1,2}/\d{1,2}/\d{2,4}$"))
                     {
                         Console.Write("Invalid date, Please enter again (DD/MM/YY): ");
                         entry = Console.ReadLine();
@@ -97,46 +109,54 @@ namespace Habit_Tracker
 
         }
         
-        public static void InsertRecord(Database database)
+        public static void InsertRecord()
         {
-
-            Console.Write("Inserting a Habit Record...\nPlease Enter the quantity: ");
+            Console.Write("Inserting a Habit Record...  Type MENU to return.\nPlease Enter the quantity: ");
             string quantity_value = Validate(Console.ReadLine(), "number");
+            if (quantity_value == "MENU") { return; }
+            
             Console.Write("Please Enter the Date (DD/MM/YY): ");
             string date_value = Validate(Console.ReadLine(), "date");
-                
-            string query = "INSERT INTO habit (quantity, date) VALUES (@quantity, @date)";
-            SQLiteCommand myCommand = new SQLiteCommand(query, database.myConnection);
-            database.OpenConnection();
-            myCommand.Parameters.AddWithValue("@quantity", quantity_value);
-            myCommand.Parameters.AddWithValue("@date", date_value);
-            myCommand.ExecuteNonQuery();
-            database.CloseConnection();
+            if (date_value == "MENU") { return; }
 
-            //Console.WriteLine("New Record Added : {0}", result);
+            using (var con = new SQLiteConnection(dbString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = "INSERT INTO habit (quantity, date) VALUES (@quantity, @date)";
+                    cmd.Parameters.AddWithValue("@quantity", quantity_value);
+                    cmd.Parameters.AddWithValue("@date", date_value);
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
-        public static void ViewRecords(Database database, string selector)
+        public static void ViewRecords(string selector)
         {
             Console.WriteLine("\nDisplaying all habit records:\n");
 
-            string query = "SELECT rowid, * FROM habit";
-
-            database.OpenConnection();
-            SQLiteCommand myCommand = new SQLiteCommand(query, database.myConnection);
-            SQLiteDataReader result = myCommand.ExecuteReader();
-            
-            if (result.HasRows)
+            using (var con = new SQLiteConnection(dbString))
             {
-                Console.WriteLine("  ID  | Quantity | Date");
-                Console.WriteLine("-----------------------------");
-                while (result.Read())
+                using (var cmd = con.CreateCommand())
                 {
-                    Console.WriteLine("{0,5} | {1,8} | {2}", result["id"], result["quantity"], result["date"]);
+                    con.Open();
+                    cmd.CommandText = "SELECT rowid, * FROM habit";
+                    
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            Console.WriteLine("  ID  | Quantity | Date");
+                            Console.WriteLine("-----------------------------");
+                            while (reader.Read())
+                            {
+                                Console.WriteLine("{0,5} | {1,8} | {2}", reader["id"], reader["quantity"], reader["date"]);
+                            }
+                        }
+                    }
                 }
             }
-
-            database.CloseConnection();
             
             if (selector == "1")
             {
@@ -146,46 +166,52 @@ namespace Habit_Tracker
              
         }
 
-        public static void DeleteRecord(Database database, string selector)
+        public static void DeleteRecord(string selector)
         {
-            ViewRecords(database, selector);
-            
-            Console.Write("\nDeleting a Record...\nEnter ID for entry to delete: ");
+            Console.Write("\nDeleting a Record...  Type MENU to return.\nEnter ID for entry to delete: ");
             string delete_index = Validate(Console.ReadLine(), "id");
+            if (delete_index == "MENU") { return; }
 
-            string query = "DELETE FROM habit WHERE id=(@Id)";
-            SQLiteCommand myCommand = new SQLiteCommand(query, database.myConnection);
-
-            database.OpenConnection();
-            myCommand.Parameters.AddWithValue("@Id", delete_index);
-            myCommand.ExecuteNonQuery();
-            database.CloseConnection();
-
+            using (var con = new SQLiteConnection(dbString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = "DELETE FROM habit WHERE id=(@Id)";
+                    cmd.Parameters.AddWithValue("@Id", delete_index);
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
-        public static void UpdateRecord(Database database, string selector)
-        {
-            ViewRecords(database, selector);
+        public static void UpdateRecord(string selector)
+        {            
+            Console.WriteLine("\nUpdating a Record...  Type MENU to return.");
             
-            Console.WriteLine("\nUpdating a Record... ");
-            Console.Write("Please Enter the ID of the log to change.");
+            Console.Write("Please Enter the ID of the log to change: ");
             string entry_id = Console.ReadLine();
+            if (entry_id == "MENU") { return; }
+            
             Console.Write("Please Enter a new quantity: ");
             string entry_quantity = Validate(Console.ReadLine(), "number");
+            if (entry_quantity == "MENU") { return; }
+            
             Console.Write("Please Enter a new date (DD/MM/YY): ");
             string entry_date = Validate(Console.ReadLine(), "date");
-            
-            
-            string query = "UPDATE habit SET quantity=(@quantity), date=(@date) WHERE id=(@id) ";
-            SQLiteCommand myCommand = new SQLiteCommand(query, database.myConnection);
+            if (entry_date == "MENU") { return; }
 
-            database.OpenConnection();
-            myCommand.Parameters.AddWithValue("@quantity", entry_quantity);
-            myCommand.Parameters.AddWithValue("@date", entry_date);
-            myCommand.Parameters.AddWithValue("@id", entry_id);
-
-            myCommand.ExecuteNonQuery();
-            database.CloseConnection();
+            using (var con = new SQLiteConnection(dbString))
+            {
+                using (var cmd = con.CreateCommand())
+                {
+                    con.Open();
+                    cmd.CommandText = "UPDATE habit SET quantity=(@quantity), date=(@date) WHERE id=(@id) ";
+                    cmd.Parameters.AddWithValue("@quantity", entry_quantity);
+                    cmd.Parameters.AddWithValue("@date", entry_date);
+                    cmd.Parameters.AddWithValue("@id", entry_id);
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
     }
 }

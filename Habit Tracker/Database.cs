@@ -15,32 +15,18 @@ namespace Habit_Tracker
         public Database()
         {
             myConnection = new SQLiteConnection("Data Source=database.sqlite3");
-            if (!File.Exists("database.sqlite3"))
-            {
-                SQLiteConnection.CreateFile("database.sqlite3");
 
-                myConnection.Open();
-                string table = "CREATE TABLE habit (id INTEGER PRIMARY KEY AUTOINCREMENT, quantity TEXT, date TEXT);";
-                SQLiteCommand command = new SQLiteCommand(table, myConnection);
-                command.ExecuteNonQuery();
-                myConnection.Close();
-            }
+                if (!File.Exists("database.sqlite3"))
+                {
+                    SQLiteConnection.CreateFile("database.sqlite3");
 
-        }
-        public void OpenConnection()
-        {
-            if (myConnection.State != System.Data.ConnectionState.Open)
-            {
-                myConnection.Open();
-            }
-        }
+                    myConnection.Open();
+                    string table = "CREATE TABLE habit (id INTEGER PRIMARY KEY AUTOINCREMENT, quantity TEXT, date TEXT);";
+                    SQLiteCommand command = new SQLiteCommand(table, myConnection);
+                    command.ExecuteNonQuery();
+                    myConnection.Close();
+                }
 
-        public void CloseConnection()
-        {
-            if (myConnection.State != System.Data.ConnectionState.Closed)
-            {
-                myConnection.Close();
-            }
         }
     }
 }
